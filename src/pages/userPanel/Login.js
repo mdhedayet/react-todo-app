@@ -1,5 +1,6 @@
 import React from 'react'
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -11,6 +12,7 @@ export default function Login() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const userLogin = (e) => {
     e.preventDefault();
@@ -27,7 +29,8 @@ export default function Login() {
     }).then((result) => {
       result.json().then((resp) => {
         console.warn("resp", resp);
-        localStorage.setItem('user-info', JSON.stringify(resp));
+        localStorage.setItem('user-token', JSON.stringify(resp));
+        navigate("/dashboard");
       })
     }
     )
@@ -58,7 +61,10 @@ export default function Login() {
             <Form.Label>Password</Form.Label>
             <Form.Control type="password" onKeyUp={passwordData} placeholder="Enter your password" />
           </Form.Group>
-          <Button type='submit' variant="primary">Sign In</Button>
+          <div className="mb-3 d-flex">
+            <Button type='submit' variant="primary">Sign In</Button>
+            <Link to="/register" className='ms-auto'>Sign Up</Link>
+          </div>
         </Form>
         </Card>
         </Col>
