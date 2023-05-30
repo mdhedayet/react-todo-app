@@ -30,6 +30,8 @@ const Todo = () => {
         let url = 'http://127.0.0.1:8000/api/todos';
          setStartDate(new Date(startDate).toISOString().slice(0, 10));
          setEndDate(new Date(endDate).toISOString().slice(0, 10));
+
+         console.log(file);
         let data = { title, start_date: startDate, end_date: endDate, file, description };
         fetch(url, {
             method: 'POST',
@@ -77,7 +79,6 @@ const Todo = () => {
             }
         }).then((result) => {
             result.json().then((resp) => {
-                console.warn("resp", resp);
                 setTodoList(resp.data);
             })
         }
@@ -183,7 +184,7 @@ const Todo = () => {
                         </Form.Group> 
                         <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
                             <Form.Label>Task File</Form.Label>
-                            <Form.Control type="file" onSubmit={fileData}  placeholder="Enter start date" />
+                            <Form.Control type="file" onSubmit={fileData}  placeholder="Select task file." />
                         </Form.Group> 
                         <Form.Group className="mb-3" controlId="exampleForm.ControlInput1"> 
                                 <Form.Label>Description</Form.Label>
