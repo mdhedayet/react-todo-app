@@ -6,7 +6,7 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Modal from 'react-bootstrap/Modal';
 import { useState } from "react";
-import { Form } from 'react-bootstrap';
+import { Badge, Form, Pagination } from 'react-bootstrap';
 import { useNavigate } from "react-router-dom";
 
 const Todo = () => {
@@ -28,34 +28,38 @@ const Todo = () => {
     const createTodo = (e) => {
         e.preventDefault();
         let url = 'http://127.0.0.1:8000/api/todos';
-         setStartDate(new Date(startDate).toISOString().slice(0, 10));
-         setEndDate(new Date(endDate).toISOString().slice(0, 10));
+        setStartDate(new Date(startDate).toISOString().slice(0, 10));
+        setEndDate(new Date(endDate).toISOString().slice(0, 10));
 
-         console.log(file);
-        let data = { title, start_date: startDate, end_date: endDate, file, description };
+        let formData = new FormData();
+        formData.append('title', title);
+        formData.append('start_date', startDate);
+        formData.append('end_date', endDate);
+        formData.append('description', description);
+        for (const item of file) {
+            formData.append('file[]', item);
+        }
+
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                // 'Content-Type': 'application/json',
+                // 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.getItem('user-token')).access_token
 
             },
-            body: JSON.stringify(data)
+            body: formData
         }).then((result) => {
             result.json().then((resp) => {
                 console.warn("resp", resp);
-                //close modal
                 setShow(false);
-                //reset form
                 setTitle('');
                 setStartDate('');
                 setEndDate('');
                 setFile('');
                 setDescription('');
-                navigate("/dashboard/todo");
-                //load todos again
                 todosData();
+                navigate("/dashboard/todo");
                 
             })
         }
@@ -63,6 +67,7 @@ const Todo = () => {
     }
 
     const [todoList,setTodoList]= useState([]);
+    const [todoListAllData,setTodoListAllData]= useState([]);
 
     useEffect(() => {
         todosData();
@@ -80,11 +85,35 @@ const Todo = () => {
         }).then((result) => {
             result.json().then((resp) => {
                 setTodoList(resp.data);
+                setTodoListAllData(resp);
+                console.log(resp);
             })
         }
         )
 
     }
+
+    const paginationData = (item) => {
+        let url = item.url;
+        if(url != null){
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + JSON.parse(localStorage.getItem('user-token')).access_token
+                }
+            }).then((result) => {
+                result.json().then((resp) => {
+                    setTodoList(resp.data);
+                    setTodoListAllData(resp);
+                    console.log(resp);
+                })
+            }
+            )
+        }
+    }
+
 
 
     const titleData = (e) => {
@@ -100,7 +129,8 @@ const Todo = () => {
     }
 
     const fileData = (e) => {
-        setFile(e.target.value);
+        let files = e.target.files;
+        setFile(files);
     }
 
     const descriptionData = (e) => {
@@ -122,7 +152,7 @@ const Todo = () => {
                                 </div>
                             </Card.Title>
                             <Card.Text>
-                                <Table striped bordered hover>
+                                <Table striped bordered hover className='p-0 m-0'>
                                     <thead>
                                         <tr>
                                             <th width="10%">#</th>
@@ -137,14 +167,17 @@ const Todo = () => {
                                         {
                                             todoList?.map((item, index) =>
                                                 <tr key={index}>
-                                                    <td>{index + 1}</td>
+                                                    <td>{((todoListAllData.current_page - 1) * todoListAllData.per_page)+ (index + 1)}</td>
                                                     <td>{item.title}</td>
                                                     <td className='text-center'>{item.start_date}</td>
                                                     <td className='text-center'>{item.end_date}</td>
-                                                    <td className='text-center'>{item.status}</td>
+                                                    <td className='text-center'>{
+                                                        item.status === 1 ? <Badge bg="success">Active</Badge> : <Badge bg="danger">InActive</Badge>
+                                                    }</td>
                                                     <td>
-                                                        <Button variant="primary" className='btn-sm'>Active</Button>{' '}
-                                                        <Button variant="danger" className='btn-sm'>InActive</Button>{' '}
+                                                        {
+                                                            item.status === 1 ? <Button variant="danger" className='btn-sm'>InActive</Button> : <Button variant="primary" className='btn-sm'>Active</Button>
+                                                        }{' '}
                                                         <Button variant="primary" className='btn-sm'>Edit</Button>{' '}
                                                         <Button variant="danger" className='btn-sm'>Delete</Button>{' '}
                                                     </td>
@@ -153,6 +186,23 @@ const Todo = () => {
 
                                         }
                                     </tbody>
+                                    <Pagination className='pt-4'>
+                                        {
+                                            todoListAllData?.links?.map((item, index) =>{
+                                                if(item.url != null){
+                                                    return(
+                                                        <Pagination.Item 
+                                                            active={item.active}
+                                                        onClick={()=>paginationData(item)}
+                                                        key={index}>{item.label === 'Next &raquo;' ? <span aria-hidden="true">&raquo;</span> : item.label === '&laquo; Previous' ? <span aria-hidden="true">&laquo;</span> : item.label}
+                                                        </Pagination.Item>
+                                                    )
+                                                }else{
+                                                    return null;
+                                                }
+                                            })
+                                        }
+                                    </Pagination>
                                 </Table>
                             </Card.Text>
                         </Card.Body>
@@ -164,7 +214,7 @@ const Todo = () => {
                     backdrop="static"
                     keyboard={false}
                 >
-                    <Form onSubmit={createTodo}>
+                    <Form onSubmit={createTodo} encType="multipart/form-data">
                         <Modal.Header closeButton>
                         <Modal.Title>Add task</Modal.Title>
                         </Modal.Header>
@@ -184,7 +234,7 @@ const Todo = () => {
                         </Form.Group> 
                         <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
                             <Form.Label>Task File</Form.Label>
-                            <Form.Control type="file" onSubmit={fileData}  placeholder="Select task file." />
+                            <Form.Control type="file" multiple  accept="image/*" onChange={fileData}  placeholder="Select task file." />
                         </Form.Group> 
                         <Form.Group className="mb-3" controlId="exampleForm.ControlInput1"> 
                                 <Form.Label>Description</Form.Label>
@@ -201,9 +251,6 @@ const Todo = () => {
                     </Form>
                 </Modal>
             </Row>
-
-
-
     );
 };
 

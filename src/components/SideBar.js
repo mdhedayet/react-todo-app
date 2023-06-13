@@ -14,24 +14,25 @@ const SideBar = () => {
                         className="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start"
                         id="menu"
                         >
-                        <li className="nav-item">
+                        {/* <li className="nav-item">
                             <Link to='/dashboard' className="nav-link align-middle px-0">
                             <i className="fs-4 bi-house" />{" "}
                             <span className="ms-1 d-none d-sm-inline">Dashboard</span>
                             </Link>
-                        </li>
+                        </li> */}
                         <li className="nav-item">
                             <Link to='/dashboard/todo' className="nav-link align-middle px-0">
                             <i className="fs-4 bi-house" />{" "}
-                            <span className="ms-1 d-none d-sm-inline">Todo</span>
+                            <span className="ms-1 d-none d-sm-inline">Todo List</span>
                             </Link>
                         </li>
                         </ul>
                         <hr />
                         <div className="dropdown pb-4">
-                            User
+                           All Rights Reserved &copy; 2023
                         </div>
                     </div>
+                    
     );
 };
 

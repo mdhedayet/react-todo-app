@@ -33,7 +33,7 @@ const Register = () => {
       result.json().then((resp) => {
         console.warn("resp", resp);
         localStorage.setItem('user-token', JSON.stringify(resp));
-        navigate("/dashboard");
+        navigate("/dashboard/todo");
       })
     }
     )
